@@ -38,7 +38,7 @@ def fetch_weather_by_coords(lat: float, lon: float, location_name: str) -> str:
             temp = data['main']['temp']
             desc = data['weather'][0]['description']
 
-            return f"Погода:\n {location_name}: {temp}°C, {desc}."
+            return f"Погода:\n{location_name}: {temp}°C, {desc}."
         return "Не удалось получить данные о погоде."
     except Exception as e:
         return f"Ошибка соединения (погода): {e}"
@@ -65,24 +65,51 @@ def get_nearby_cafes(lat, lon):
         return f"Ошибка соединения (2GIS): {e}"
 
 def reverse_geocode_2gis(lat: float, lon: float) -> tuple:
-    """Преобразует координаты в адрес (город, улица, дом)"""
+    """Преобразует координаты в адрес"""
     try:
         url = "https://catalog.api.2gis.com/3.0/items"
         params = {
             "point": f"{lon},{lat}",
-            "radius": 300,
+            "radius": 2000,
             "key": GIS_API_KEY,
-            "fields": "items.city,items.address_name"
+            "fields": "items.city,items.address_name,items.name,items.full_name,items.subtype,items.type",
+            "limit": 5
         }
-        resp = requests.get(url, params=params, timeout=5)
+        resp = requests.get(url, params=params, timeout=10)
+
         if resp.status_code == 200:
             items = resp.json().get("result", {}).get("items", [])
             if items:
-                city = items[0].get("city", "Неизвестный город")
-                address = items[0].get("address_name", "")
+                city_item = next((i for i in items if i.get('subtype') == 'city'), None)
+                if city_item:
+                    city = city_item.get('name')
+                else:
+                    full_name_item = next((i for i in items if i.get('full_name')), None)
+                    city = full_name_item['full_name'].split(',')[0].strip() if full_name_item else None
+
+                if not city:
+                    name_item = next((i for i in items if i.get('name')), None)
+                    city = name_item.get('name') if name_item else "Неизвестный город"
+
+                building = next((i for i in items if i.get('type') == 'building' and i.get('address_name')), None)
+                if building:
+                    address = building['address_name']
+                else:
+                    street = next((i for i in items if i.get('type') == 'street'), None)
+                    address = street.get('name') if street else None
+
+                if not address:
+                    addr_item = next((i for i in items if i.get('address_name')), None)
+                    address = addr_item['address_name'] if addr_item else None
+
+                if not address:
+                    name_item = next((i for i in items if i.get('name')), None)
+                    address = name_item['name'] if name_item else "Адрес не определен"
+
                 return city, address
     except Exception as e:
-        logging.warning(f"Ошибка геокодирования: {e}")
+        logging.error(f"Ошибка геокодирования: {e}")
+
     return "Неизвестный город", "Адрес не определен"
 
 def geocode_address_2gis(city: str, street: str, house: str):
@@ -216,19 +243,20 @@ async def handle_location(message: Message):
     """обработчик геолокации (координаты -> адрес)"""
     lat, lon = message.location.latitude, message.location.longitude
 
+    logging.info(f"Координаты: {lat}, {lon}")
+
     city, address = reverse_geocode_2gis(lat, lon)
 
-    if city != "Неизвестный город" and address != "Адрес не определен":
+    logging.info(f"ИТОГ: city='{city}', address='{address}'")
+
+    if city != "Местоположение" and address != f"координаты: {lat:.4f}, {lon:.4f}":
         location_display = f"{city}, {address}"
-    elif city != "Неизвестный город":
-        location_display = city
-    elif address != "Адрес не определен":
-        location_display = address
     else:
-        location_display = f"координаты: {lat:.4f}, {lon:.4f}"
+        location_display = f"{city}: {address}"
+
+    logging.info(f"location_display='{location_display}'")
 
     await process_location_info(message, lat, lon, location_display)
-
 @dp.message(F.text & ~F.commands)
 async def handle_city_text(message: Message):
     if message.text in ["Посоветуй место по локации", "Ввести адрес", "Помощь"]:
