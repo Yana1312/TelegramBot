@@ -22,6 +22,10 @@ Telegram-бот, созданный с использованием **aiogram** 
 
 <img width="1080" height="1353" alt="image" src="https://github.com/user-attachments/assets/4ec388f5-9c9f-4bc9-b68b-65898aacbdcf" />
 
+<img width="1080" height="1333" alt="image" src="https://github.com/user-attachments/assets/20568308-44f1-442c-8f07-77eb4d5e8442" />
+
+<img width="1080" height="1877" alt="image" src="https://github.com/user-attachments/assets/cee8d757-e293-4a9a-afa4-17b1f79ab1a7" />
+
 
 ---
 
