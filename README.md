@@ -15,7 +15,12 @@ Telegram-бот, созданный с использованием **aiogram** 
 Ниже представлен скриншот главного меню бота, демонстрирующий основные доступные команды и интерфейс взаимодействия.
 
 ![Главное меню бота](screenshots/image.png)
+
 <img width="1080" height="1688" alt="image" src="https://github.com/user-attachments/assets/2eb799d2-5dc9-41d5-9e96-8912a5c93281" />
+
+<img width="1080" height="1642" alt="image" src="https://github.com/user-attachments/assets/918d63a9-5750-43ec-a0a4-4aef3343088e" />
+
+<img width="1080" height="1353" alt="image" src="https://github.com/user-attachments/assets/4ec388f5-9c9f-4bc9-b68b-65898aacbdcf" />
 
 
 ---
